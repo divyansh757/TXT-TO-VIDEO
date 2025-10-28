@@ -1,29 +1,19 @@
-# Base image
-FROM python:3.9-slim
+FROM python:3.10-slim-bookworm
 
-# Set working directory
-WORKDIR /app
+RUN apt-get update -y && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+        gcc libffi-dev musl-dev ffmpeg aria2 python3-pip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements.txt first (to leverage Docker cache)
-COPY requirements.txt .
+COPY . /app/
+WORKDIR /app/
 
-# Update & install dependencies safely
-RUN apt-get update --fix-missing && \
-    apt-get install -y --no-install-recommends \
-        gcc \
-        libffi-dev \
-        libssl-dev \
-        ffmpeg \
-        aria2 \
-        python3-pip && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN pip3 install --no-cache-dir --upgrade --requirement requirements.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# agar requirements.txt mein pytube nahi hai
+RUN pip3 install pytube
 
-# Copy all project files
-COPY . .
+ENV COOKIES_FILE_PATH="youtube_cookies.txt"
 
-# Default command (change vars.py to your main file)
-CMD ["python3", "vars.py"]
+CMD gunicorn app:app & python3 main.py
