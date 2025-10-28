@@ -4,15 +4,15 @@ FROM python:3.9-slim
 # Set working directory
 WORKDIR /app
 
-# Copy requirements.txt
+# Copy requirements.txt first (to leverage Docker cache)
 COPY requirements.txt .
 
-# Update and install dependencies safely
+# Update & install dependencies safely
 RUN apt-get update --fix-missing && \
     apt-get install -y --no-install-recommends \
         gcc \
         libffi-dev \
-        musl-dev \
+        libssl-dev \
         ffmpeg \
         aria2 \
         python3-pip && \
@@ -25,5 +25,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy all project files
 COPY . .
 
-# Run your bot or app (replace main.py with your actual file)
+# Default command (change vars.py to your main file)
 CMD ["python3", "vars.py"]
